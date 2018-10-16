@@ -164,7 +164,7 @@ class Box:
             lines.set(**fmt)
 
 
-    def draw_top(self):
+    def draw_top(self, cmap=plt.cm.viridis):
         farr = self._check_for_point([None, None, self.z0 + self.dz])
         cors = self.filter_points( farr )
         data_slice = self.data[:,:,-1] 
@@ -176,9 +176,9 @@ class Box:
         z1 = self.z0 + self.dz
         Z = z1*np.ones(X.shape)
 
-        self.draw_surface(X,Y,Z,data_slice)
+        self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
-    def draw_left(self):
+    def draw_left(self, cmap=plt.cm.viridis):
         farr = self._check_for_point([None, self.y0 + self.dy, None])
         cors = self.filter_points( farr )
         data_slice = self.data[:,-1,:]
@@ -190,9 +190,9 @@ class Box:
         y1 = self.y0 + self.dy
         Y = y1*np.ones(X.shape)
 
-        self.draw_surface(X,Y,Z,data_slice)
+        self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
-    def draw_right(self):
+    def draw_right(self, cmap=plt.cm.viridis):
         farr = self._check_for_point([self.x0 + self.dx, None, None])
         cors = self.filter_points( farr )
         data_slice = self.data[-1,:,:] 
@@ -204,10 +204,10 @@ class Box:
         x1 = self.x0 + self.dx
         X = x1*np.ones(Z.shape)
 
-        self.draw_surface(X,Y,Z,data_slice)
+        self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
 
-    def draw_exploded_bottom(self, off=dx):
+    def draw_exploded_bottom(self, off=dx, cmap=plt.cm.inferno):
         farr = self._check_for_point([None, None, self.z0])
         cors = self.filter_points( farr )
         data_slice = self.data[:,:,0] 
@@ -219,10 +219,10 @@ class Box:
         z1 = self.z0 - off
         Z = z1*np.ones(X.shape)
 
-        self.draw_surface(X,Y,Z,data_slice, cmap=plt.cm.inferno)
+        self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
 
-    def draw_exploded_left(self, off=dx):
+    def draw_exploded_left(self, off=dx, cmap=plt.cm.inferno):
         farr = self._check_for_point([None, self.y0, None])
         cors = self.filter_points( farr )
         data_slice = self.data[:,0,:]
@@ -234,10 +234,10 @@ class Box:
         y1 = self.y0 - off
         Y = y1*np.ones(X.shape)
 
-        self.draw_surface(X,Y,Z,data_slice, cmap=plt.cm.inferno)
+        self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
 
-    def draw_exploded_right(self, off=dx):
+    def draw_exploded_right(self, off=dx, cmap=plt.cm.inferno):
         farr = self._check_for_point([self.x0, None, None])
         cors = self.filter_points( farr )
         data_slice = self.data[0,:,:] 
@@ -249,7 +249,7 @@ class Box:
         x1 = self.x0 - off
         X = x1*np.ones(Z.shape)
 
-        self.draw_surface(X,Y,Z,data_slice, cmap=plt.cm.inferno)
+        self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
 
     # mimick volume rendering with multiple opaque slices
@@ -363,6 +363,7 @@ if __name__ == "__main__":
     box.draw_outline()
 
 
+    #back exploded panels
     off = 0.7
     box.draw_exploded_panels_outline("bottom", off=off)
     box.draw_exploded_panels_outline("left",   off=off)
@@ -372,6 +373,17 @@ if __name__ == "__main__":
     box.draw_exploded_left(  off=off)
     box.draw_exploded_right( off=off)
 
+    #front exploded panels
+    off = -1.95
+    cmap = plt.cm.RdBu
+    box.draw_exploded_panels_outline("bottom", off=off)
+    box.draw_exploded_panels_outline("left",   off=off)
+    box.draw_exploded_panels_outline("right",  off=off)
+    
+    box.draw_exploded_bottom(off=off, cmap=cmap)
+    box.draw_exploded_left(  off=off, cmap=cmap)
+    box.draw_exploded_right( off=off, cmap=cmap)
+
 
     axs[0].set_axis_off()
     axs[0].view_init(35.0, 45.0)
@@ -379,7 +391,7 @@ if __name__ == "__main__":
 
     axisEqual3D(axs[0])
     fname = 'box'
-    plt.subplots_adjust(left=0.0, bottom=0.0, right=1.0, top=1.0)
+    plt.subplots_adjust(left=-0.2, bottom=-0.2, right=1.2, top=1.2)
     plt.savefig(fname+'.pdf')
     plt.savefig(fname+'.png')
     
