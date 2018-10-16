@@ -11,7 +11,7 @@ import h5py as h5
 import sys, os
 import matplotlib.ticker as ticker
 
-
+np.random.seed(0)
 
 
 class Box:
@@ -344,12 +344,31 @@ if __name__ == "__main__":
     
     #create data
     Nx = 50
-    x = np.linspace(0.0, 1.0, Nx)
-    y = np.linspace(0.0, 1.0, Nx)
-    z = np.linspace(0.0, 1.0, Nx)
-    X, Y, Z = np.meshgrid(x, y, z)
-    data = f(X,Y,Z)
+    #x = np.linspace(0.0, 1.0, Nx)
+    #y = np.linspace(0.0, 1.0, Nx)
+    #z = np.linspace(0.0, 1.0, Nx)
+    #X, Y, Z = np.meshgrid(x, y, z)
+    #data = f(X,Y,Z)
+
+
+    #random data; low-k forcing
+    data = np.zeros((Nx, Nx, np.int(Nx/2)+1 ),dtype=np.complex64)
+    for i in range(1,10):
+        for j in range(1,10):
+            for k in range(1,5):
+                if np.sqrt(i*i + j*j + k*k) > 6:
+                    continue
+                norm = 1.0/(i + j + k + 1)**2.0
+                val = np.random.randn() + 1j*np.random.randn()
+                val /= val*val
+                data[i,j,k] = norm*val
+    data = np.fft.irfftn(data)
+    print(np.shape(data))
+
+    ################################################## 
+    # draw box
     
+
     box = Box(axs[0])
     box.set_data(data)
 
