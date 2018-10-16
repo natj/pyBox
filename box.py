@@ -37,9 +37,6 @@ class Box:
 
     # initialize box corners
     def make_corners(self):
-        #xyz corners
-        self.corners   = np.zeros((2,2,2), dtype=(float,3))
-        
         x0 = self.x0
         y0 = self.y0
         z0 = self.z0
@@ -47,46 +44,33 @@ class Box:
         dx = self.dx
         dy = self.dy
         dz = self.dz
-
-        #bottom panel
-        #self.corners[0,0,0] = (x0,   y0,    z0   )
-        #self.corners[1,0,0] = (x0+dx,y0,    z0   )
-        #self.corners[0,1,0] = (x0,   y0+dy, z0   )
-        #self.corners[1,1,0] = (x0+dx,y0+dy, z0   )
-
-        ##top panel
-        #self.corners[0,0,1] = (x0,   y0,    z0+dz)
-        #self.corners[1,0,1] = (x0+dx,y0,    z0+dz)
-        #self.corners[0,1,1] = (x0,   y0+dy, z0+dz)
-        #self.corners[1,1,1] = (x0+dx,y0+dy, z0+dz)
         
+        #xyz corners
         self.corners = np.array(list(product([x0, x0+dx], [y0, y0+dy], [z0, z0+dz]))) 
 
         print("corners are:")
         print(self.corners)
 
-    #def make_bottom(self):
-    #    panel = []
-    #    panel.append( (self.corners[0,0,0], self.corners[1,0,0] ) )
-    #    panel.append( (self.corners[0,0,0], self.corners[0,1,0] ) )
-    #    panel.append( (self.corners[1,0,0], self.corners[1,1,0] ) )
-    #    panel.append( (self.corners[0,1,0], self.corners[1,1,0] ) )
-    #    return panel
+    # filter given points away from corner array to get visibility conditions
+    def filter_points(self, pps):
+        corners = []
 
-    #def make_top(self):
-    #    panel = []
-    #    panel.append( (self.corners[0,0,1], self.corners[1,0,1] ) )
-    #    panel.append( (self.corners[0,0,1], self.corners[0,1,1] ) )
-    #    panel.append( (self.corners[1,0,1], self.corners[1,1,1] ) )
-    #    panel.append( (self.corners[0,1,1], self.corners[1,1,1] ) )
-    #    return panel
+        self.make_corners() #update corners; just in case
+        for pp in self.corners:
+            print(" drawing ", pp)
+            if (pp == pps).all():
+                continue
+            print("     accepted")
+            corners.append( pp )
+        return corners
 
-    def make_panel(self):
+
+    def make_panel(self, corners):
         panel = []
         
         #draw cube
-        print("combinatorics:")
-        for s, e in combinations( self.corners, 2):
+        print("combinatorics for:", corners)
+        for s, e in combinations( corners, 2):
             if np.sum(np.abs(s-e)) == self.dx:
                 print("XX    ", s,e )
                 panel.append( (s,e) )
@@ -98,26 +82,24 @@ class Box:
     def make_outline(self):
         self.make_corners()
 
-        #bot = self.make_bottom()
-        #for (p0, p1) in bot:
-        #    print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
-        #    lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
-        #    lines.set(**self.fmt)
+        outlines = self.make_panel(self.corners)
+        for (p0, p1) in outlines:
+            print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
+            lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
+            lines.set(**self.fmt)
 
+        print("-------------filttering...")
 
         fmt2={'color':'r','linestyle':'dashed',}
-        bot = self.make_panel()
-        for (p0, p1) in bot:
+        corners_f = self.filter_points( [ np.array([self.x0, self.y0, self.z0]) ] )
+        outlines2 = self.make_panel( corners_f )
+
+        print(outlines2)
+        for (p0, p1) in outlines2:
             print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
             lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
             lines.set(**fmt2)
 
-
-        #top = self.make_top()
-        #for (p0, p1) in top:
-        #    print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
-        #    lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
-        #    lines.set(**self.fmt)
 
 
 
@@ -179,7 +161,8 @@ if __name__ == "__main__":
     axs[0].view_init(45.0, 45.0)
     
     
-    fname = 'box.pdf'
+    fname = 'box'
     plt.subplots_adjust(left=0.0, bottom=0.0, right=1.1, top=1.0)
-    plt.savefig(fname)
+    plt.savefig(fname+'.pdf')
+    plt.savefig(fname+'.png')
     
