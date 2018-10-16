@@ -27,7 +27,7 @@ class Box:
     dz = dy
 
     #default plotting style
-    fmt={'color':'k','linestyle':'solid',}
+    #fmt={'color':'k','linestyle':'solid',}
 
 
     #ctor
@@ -55,10 +55,10 @@ class Box:
     def filter_points(self, pps):
         corners = []
 
-        print("filttering...")
+        #print("filttering...")
         self.make_corners() #update corners; just in case
         for pp in self.corners:
-            print(" drawing ", pp)
+            #print(" drawing ", pp)
 
             flag=True #there is no such a point
             for ps in pps:
@@ -66,7 +66,7 @@ class Box:
                     flag = False
 
             if flag:
-                print("     accepted")
+                #print("     accepted")
                 corners.append( pp )
         return corners
 
@@ -85,40 +85,41 @@ class Box:
 
 
     # initialize box outlines
-    def draw_outline(self):
+    def draw_outline(self,
+            fmt={'color':'k','linestyle':'solid',}
+            ):
         self.make_corners()
 
-        outlines = self.make_panel(self.corners)
-        for (p0, p1) in outlines:
-            #print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
-            lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
-            lines.set(**self.fmt)
-
+        #outlines = self.make_panel(self.corners)
+        #for (p0, p1) in outlines:
+        #    #print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
+        #    lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
+        #    lines.set(**self.fmt)
         #print("-------------filttering...")
 
-        fmt2={'color':'r','linestyle':'dashed',}
         corners_f = self.filter_points( [ np.array([self.x0, self.y0, self.z0]) ] )
         outlines2 = self.make_panel( corners_f )
 
-        print(outlines2)
+        #print(outlines2)
         for (p0, p1) in outlines2:
             #print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
             lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
-            lines.set(**fmt2)
+            lines.set(**fmt)
 
 
     # draw also backside and bottom panels using exploded view
     def draw_hidden_panels(self, 
             side, 
             off = dx,
+            fmt={'color':'k','linestyle':'dashed',},
             ):
 
         farr = []
         if side == "bottom":
             for pp in self.corners:
-                print("drawing", pp, pp[2])
+                #print("drawing", pp, pp[2])
                 if not(pp[2] == self.z0):
-                    print("appending")
+                    #print("appending")
                     farr.append(pp)
 
             cors = self.filter_points( farr )
@@ -128,14 +129,14 @@ class Box:
             for i in range(len(cors)):
                 cors2.append( cors[i] + np.array([0,0,-off]) )
 
-            print("bottom panel=", cors2)
+            #print("bottom panel=", cors2)
             outlines = self.make_panel( cors2 )
 
         elif side == "right":
             for pp in self.corners:
-                print("drawing", pp, pp[2])
+                #print("drawing", pp, pp[2])
                 if not(pp[0] == self.x0):
-                    print("appending")
+                    #print("appending")
                     farr.append(pp)
 
             cors = self.filter_points( farr )
@@ -145,14 +146,14 @@ class Box:
             for i in range(len(cors)):
                 cors2.append( cors[i] + np.array([-off,0,0]) )
 
-            print("right panel=", cors2)
+            #print("right panel=", cors2)
             outlines = self.make_panel( cors2 )
 
         elif side == "left":
             for pp in self.corners:
-                print("drawing", pp, pp[2])
+                #print("drawing", pp, pp[2])
                 if not(pp[1] == self.y0):
-                    print("appending")
+                    #print("appending")
                     farr.append(pp)
 
             cors = self.filter_points( farr )
@@ -162,26 +163,15 @@ class Box:
             for i in range(len(cors)):
                 cors2.append( cors[i] + np.array([0,-off,0]) )
 
-            print("left panel=", cors2)
+            #print("left panel=", cors2)
             outlines = self.make_panel( cors2 )
 
 
-
-        fmt2={'color':'b','linestyle':'dashed',}
-        print(outlines)
+        #print(outlines)
         for (p0, p1) in outlines:
-            print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
+            #print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
             lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
-            lines.set(**fmt2)
-
-
-        fmt2={'color':'b','linestyle':'dashed',}
-        print(outlines)
-        for (p0, p1) in outlines:
-            print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
-            lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
-            lines.set(**fmt2)
-
+            lines.set(**fmt)
 
 
 
