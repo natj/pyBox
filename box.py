@@ -48,20 +48,26 @@ class Box:
         #xyz corners
         self.corners = np.array(list(product([x0, x0+dx], [y0, y0+dy], [z0, z0+dz]))) 
 
-        print("corners are:")
-        print(self.corners)
+        #print("corners are:")
+        #print(self.corners)
 
     # filter given points away from corner array to get visibility conditions
     def filter_points(self, pps):
         corners = []
 
+        print("filttering...")
         self.make_corners() #update corners; just in case
         for pp in self.corners:
             print(" drawing ", pp)
-            if (pp == pps).all():
-                continue
-            print("     accepted")
-            corners.append( pp )
+
+            flag=True #there is no such a point
+            for ps in pps:
+                if (pp == ps).all():
+                    flag = False
+
+            if flag:
+                print("     accepted")
+                corners.append( pp )
         return corners
 
 
@@ -69,26 +75,26 @@ class Box:
         panel = []
         
         #draw cube
-        print("combinatorics for:", corners)
+        #print("combinatorics for:", corners)
         for s, e in combinations( corners, 2):
             if np.sum(np.abs(s-e)) == self.dx:
-                print("XX    ", s,e )
+                #print("XX    ", s,e )
                 panel.append( (s,e) )
 
         return panel
 
 
     # initialize box outlines
-    def make_outline(self):
+    def draw_outline(self):
         self.make_corners()
 
         outlines = self.make_panel(self.corners)
         for (p0, p1) in outlines:
-            print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
+            #print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
             lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
             lines.set(**self.fmt)
 
-        print("-------------filttering...")
+        #print("-------------filttering...")
 
         fmt2={'color':'r','linestyle':'dashed',}
         corners_f = self.filter_points( [ np.array([self.x0, self.y0, self.z0]) ] )
@@ -96,6 +102,82 @@ class Box:
 
         print(outlines2)
         for (p0, p1) in outlines2:
+            #print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
+            lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
+            lines.set(**fmt2)
+
+
+    # draw also backside and bottom panels using exploded view
+    def draw_hidden_panels(self, 
+            side, 
+            off = dx,
+            ):
+
+        farr = []
+        if side == "bottom":
+            for pp in self.corners:
+                print("drawing", pp, pp[2])
+                if not(pp[2] == self.z0):
+                    print("appending")
+                    farr.append(pp)
+
+            cors = self.filter_points( farr )
+
+            #add offset
+            cors2 = []
+            for i in range(len(cors)):
+                cors2.append( cors[i] + np.array([0,0,-off]) )
+
+            print("bottom panel=", cors2)
+            outlines = self.make_panel( cors2 )
+
+        elif side == "right":
+            for pp in self.corners:
+                print("drawing", pp, pp[2])
+                if not(pp[0] == self.x0):
+                    print("appending")
+                    farr.append(pp)
+
+            cors = self.filter_points( farr )
+
+            #add offset
+            cors2 = []
+            for i in range(len(cors)):
+                cors2.append( cors[i] + np.array([-off,0,0]) )
+
+            print("right panel=", cors2)
+            outlines = self.make_panel( cors2 )
+
+        elif side == "left":
+            for pp in self.corners:
+                print("drawing", pp, pp[2])
+                if not(pp[1] == self.y0):
+                    print("appending")
+                    farr.append(pp)
+
+            cors = self.filter_points( farr )
+
+            #add offset
+            cors2 = []
+            for i in range(len(cors)):
+                cors2.append( cors[i] + np.array([0,-off,0]) )
+
+            print("left panel=", cors2)
+            outlines = self.make_panel( cors2 )
+
+
+
+        fmt2={'color':'b','linestyle':'dashed',}
+        print(outlines)
+        for (p0, p1) in outlines:
+            print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
+            lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
+            lines.set(**fmt2)
+
+
+        fmt2={'color':'b','linestyle':'dashed',}
+        print(outlines)
+        for (p0, p1) in outlines:
             print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
             lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
             lines.set(**fmt2)
@@ -136,6 +218,14 @@ def draw_box_surface(
             antialiased=True,
             )
 
+def axisEqual3D(ax):
+    extents = np.array([getattr(ax, 'get_{}lim'.format(dim))() for dim in 'xyz'])
+    sz = extents[:,1] - extents[:,0]
+    centers = np.mean(extents, axis=1)
+    maxsize = max(abs(sz))
+    r = maxsize/2
+    for ctr, dim in zip(centers, 'xyz'):
+        getattr(ax, 'set_{}lim'.format(dim))(ctr - r, ctr + r)
 
 
 ##################################################
@@ -155,12 +245,18 @@ if __name__ == "__main__":
     
     
     box = Box(axs[0])
-    box.make_outline()
+    box.draw_outline()
+    box.draw_hidden_panels("bottom")
+    box.draw_hidden_panels("left")
+    box.draw_hidden_panels("right")
     
-    #axs[0].set_axis_off()
-    axs[0].view_init(45.0, 45.0)
+
+    axs[0].set_axis_off()
+    axs[0].view_init(30.0, 45.0)
     
     
+
+    axisEqual3D(axs[0])
     fname = 'box'
     plt.subplots_adjust(left=0.0, bottom=0.0, right=1.1, top=1.0)
     plt.savefig(fname+'.pdf')
