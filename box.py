@@ -343,7 +343,7 @@ if __name__ == "__main__":
     axs.append( fig.add_subplot(111, projection='3d') )
     
     #create data
-    Nx = 50
+    Nx = 20
     #x = np.linspace(0.0, 1.0, Nx)
     #y = np.linspace(0.0, 1.0, Nx)
     #z = np.linspace(0.0, 1.0, Nx)
@@ -393,7 +393,7 @@ if __name__ == "__main__":
     box.draw_exploded_right( off=off)
 
     #front exploded panels
-    off = -1.95
+    off = -1.95 #this puts them in front of the box
     cmap = plt.cm.RdBu
     box.draw_exploded_panels_outline("bottom", off=off)
     box.draw_exploded_panels_outline("left",   off=off)
@@ -406,11 +406,36 @@ if __name__ == "__main__":
 
     axs[0].set_axis_off()
     axs[0].view_init(35.0, 45.0)
-    
+
+    #colorbars
+
+    m = plt.cm.ScalarMappable(cmap=plt.cm.viridis)
+    m.set_array([0.0, 1.0])
+    m.set_clim( vmin=0.0, vmax=1.0 )
+    cbaxes = fig.add_axes([0.2, 0.91, 0.6, 0.02]) #[left, bottom, width, height],
+    cb = plt.colorbar(m, cax = cbaxes, orientation="horizontal", ticklocation="top")  
+    fig.text(0.15, 0.91,  r'$n_{\pm}$')
+
+    m = plt.cm.ScalarMappable(cmap=plt.cm.inferno)
+    m.set_array([0.0, 1.0])
+    m.set_clim( vmin=0.0, vmax=1.0 )
+    cbaxes = fig.add_axes([0.2, 0.09, 0.6, 0.02]) #[left, bottom, width, height],
+    cb = plt.colorbar(m, cax = cbaxes, orientation="horizontal", ticklocation="top")  
+    fig.text(0.15, 0.10,  r'$n_{\nu}$')
+
+    m = plt.cm.ScalarMappable(cmap=plt.cm.RdBu)
+    m.set_array([-1.0, 1.0])
+    m.set_clim( vmin=-1.0, vmax=1.0 )
+    cbaxes = fig.add_axes([0.2, 0.06, 0.6, 0.02]) #[left, bottom, width, height],
+    cb = plt.colorbar(m, cax = cbaxes, orientation="horizontal", ticklocation="bottom")  
+    #cb.set_label(r'$J$', rotation=0)
+    fig.text(0.15, 0.05,  r'$J$')
+
+
 
     axisEqual3D(axs[0])
     fname = 'box'
-    plt.subplots_adjust(left=-0.2, bottom=-0.2, right=1.2, top=1.2)
+    plt.subplots_adjust(left=-0.1, bottom=-0.1, right=1.1, top=1.1)
     plt.savefig(fname+'.pdf')
     plt.savefig(fname+'.png')
     
