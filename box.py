@@ -114,6 +114,7 @@ class Box:
 
 
     def _check_for_point(self, arr):
+        self.make_corners()
         farr = []
         for pp in self.corners:
             #print("drawing", pp, pp[2])
@@ -131,7 +132,7 @@ class Box:
 
 
     # draw also backside and bottom panels using exploded view
-    def draw_hidden_panels(self, 
+    def draw_exploded_panels_outline(self, 
             side, 
             off = dx,
             fmt={'color':'k','linestyle':'dashed',},
@@ -206,9 +207,57 @@ class Box:
         self.draw_surface(X,Y,Z,data_slice)
 
 
+    def draw_exploded_bottom(self, off=dx):
+        farr = self._check_for_point([None, None, self.z0])
+        cors = self.filter_points( farr )
+        data_slice = self.data[:,:,0] 
 
-    def draw_surface(self, X, Y, Z, data):
-        cmap = plt.cm.viridis
+        ny, nx = np.shape(data_slice)
+        X, Y = np.meshgrid( 
+                np.linspace(self.x0, self.x0 + self.dx, nx), 
+                np.linspace(self.y0, self.y0 + self.dy, ny))
+        z1 = self.z0 - off
+        Z = z1*np.ones(X.shape)
+
+        self.draw_surface(X,Y,Z,data_slice, cmap=plt.cm.inferno)
+
+
+    def draw_exploded_left(self, off=dx):
+        farr = self._check_for_point([None, self.y0, None])
+        cors = self.filter_points( farr )
+        data_slice = self.data[:,0,:]
+
+        ny, nx = np.shape(data_slice)
+        X, Z = np.meshgrid( 
+                np.linspace(self.x0, self.x0 + self.dx, nx), 
+                np.linspace(self.z0, self.z0 + self.dz, ny))
+        y1 = self.y0 - off
+        Y = y1*np.ones(X.shape)
+
+        self.draw_surface(X,Y,Z,data_slice, cmap=plt.cm.inferno)
+
+
+    def draw_exploded_right(self, off=dx):
+        farr = self._check_for_point([self.x0, None, None])
+        cors = self.filter_points( farr )
+        data_slice = self.data[0,:,:] 
+
+        ny, nx = np.shape(data_slice)
+        Y, Z = np.meshgrid( 
+                np.linspace(self.y0, self.y0 + self.dy, nx), 
+                np.linspace(self.z0, self.z0 + self.dz, ny))
+        x1 = self.x0 - off
+        X = x1*np.ones(Z.shape)
+
+        self.draw_surface(X,Y,Z,data_slice, cmap=plt.cm.inferno)
+
+
+
+    def draw_surface(self, 
+            X, Y, Z, 
+            data, 
+            cmap = plt.cm.viridis,
+            ):
 
         norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
         self.ax.plot_surface(
@@ -239,9 +288,9 @@ def f(x, y, z):
     #u = np.cos(x)*np.sin(y)
     #v = np.sin(x)*np.cos(y)
     #w = np.cos(x)*np.cos(y)
-    kx = 10.0
-    ky = 15.0
-    kz = 20.0
+    kx = 1.0
+    ky = 5.0
+    kz = 10.0
     return np.cos(kx*x + 0.1) + np.cos(ky*y + 0.2) + np.cos(kz*z + 0.3)
 
 #def f(x, y, z):
@@ -275,7 +324,7 @@ if __name__ == "__main__":
     axs.append( fig.add_subplot(111, projection='3d') )
     
     #create data
-    Nx = 50
+    Nx = 20
     x = np.linspace(0.0, 1.0, Nx)
     y = np.linspace(0.0, 1.0, Nx)
     z = np.linspace(0.0, 1.0, Nx)
@@ -285,19 +334,23 @@ if __name__ == "__main__":
     box = Box(axs[0])
     box.set_data(data)
 
-    box.draw_outline()
     box.draw_top()
     box.draw_left()
     box.draw_right()
+    box.draw_outline()
 
 
-    box.draw_hidden_panels("bottom")
-    box.draw_hidden_panels("left")
-    box.draw_hidden_panels("right")
+    box.draw_exploded_panels_outline("bottom")
+    box.draw_exploded_panels_outline("left")
+    box.draw_exploded_panels_outline("right")
     
+    box.draw_exploded_bottom()
+    box.draw_exploded_left()
+    box.draw_exploded_right()
+
 
     axs[0].set_axis_off()
-    axs[0].view_init(30.0, 45.0)
+    axs[0].view_init(35.0, 45.0)
     
 
 
