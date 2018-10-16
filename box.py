@@ -92,7 +92,7 @@ class Box:
 
     # initialize box outlines
     def draw_outline(self,
-            fmt={'color':'k','linestyle':'solid',}
+            fmt={'color':'k','linestyle':'dashed', 'lw':0.8, 'zorder':10}
             ):
         self.make_corners()
 
@@ -252,11 +252,30 @@ class Box:
         self.draw_surface(X,Y,Z,data_slice, cmap=plt.cm.inferno)
 
 
+    # mimick volume rendering with multiple opaque slices
+    def draw_volume(self):
+
+        nx, ny, nz = np.shape(self.data)
+        X, Y = np.meshgrid( 
+                np.linspace(self.x0, self.x0 + self.dx, nx), 
+                np.linspace(self.y0, self.y0 + self.dy, ny))
+
+        for k in range(ny):
+            data_slice = self.data[:,:,k]
+
+            z1 = self.z0 + self.dz*float(k)/float(nz)
+            Z = z1*np.ones(X.shape)
+
+            self.draw_surface(X,Y,Z,data_slice, alpha=0.3)
+
+
+
 
     def draw_surface(self, 
             X, Y, Z, 
             data, 
             cmap = plt.cm.viridis,
+            alpha=1.0
             ):
 
         norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
@@ -266,7 +285,7 @@ class Box:
                 cstride=1,
                 facecolors=cmap( norm( data.T ) ),
                 shade=False,
-                alpha=1.0,
+                alpha=alpha,
                 antialiased=True,
                 )
 
@@ -324,7 +343,7 @@ if __name__ == "__main__":
     axs.append( fig.add_subplot(111, projection='3d') )
     
     #create data
-    Nx = 20
+    Nx = 50
     x = np.linspace(0.0, 1.0, Nx)
     y = np.linspace(0.0, 1.0, Nx)
     z = np.linspace(0.0, 1.0, Nx)
@@ -334,27 +353,28 @@ if __name__ == "__main__":
     box = Box(axs[0])
     box.set_data(data)
 
+    #surface rendering
     box.draw_top()
     box.draw_left()
     box.draw_right()
+
+    #volume rendering
+    #box.draw_volume()
     box.draw_outline()
 
 
-    box.draw_exploded_panels_outline("bottom")
-    box.draw_exploded_panels_outline("left")
-    box.draw_exploded_panels_outline("right")
+    off = 0.7
+    box.draw_exploded_panels_outline("bottom", off=off)
+    box.draw_exploded_panels_outline("left",   off=off)
+    box.draw_exploded_panels_outline("right",  off=off)
     
-    box.draw_exploded_bottom()
-    box.draw_exploded_left()
-    box.draw_exploded_right()
+    box.draw_exploded_bottom(off=off)
+    box.draw_exploded_left(  off=off)
+    box.draw_exploded_right( off=off)
 
 
     axs[0].set_axis_off()
     axs[0].view_init(35.0, 45.0)
-    
-
-
-
     
 
     axisEqual3D(axs[0])
