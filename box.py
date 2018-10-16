@@ -107,6 +107,22 @@ class Box:
             lines.set(**fmt)
 
 
+    def _check_for_point(self, arr):
+        farr = []
+        for pp in self.corners:
+            #print("drawing", pp, pp[2])
+            for i in [0,1,2]:
+                if not(arr[i] == None) and not(pp[i] == arr[i]):
+                    #print("appending")
+                    farr.append(pp)
+        return farr
+
+    def _add_offset(self, cors, offs):
+        cors2 = []
+        for i in range(len(cors)):
+            cors2.append( cors[i] + offs )
+        return cors2
+
     # draw also backside and bottom panels using exploded view
     def draw_hidden_panels(self, 
             side, 
@@ -116,54 +132,21 @@ class Box:
 
         farr = []
         if side == "bottom":
-            for pp in self.corners:
-                #print("drawing", pp, pp[2])
-                if not(pp[2] == self.z0):
-                    #print("appending")
-                    farr.append(pp)
-
+            farr = self._check_for_point([None, None, self.z0])
             cors = self.filter_points( farr )
-
-            #add offset
-            cors2 = []
-            for i in range(len(cors)):
-                cors2.append( cors[i] + np.array([0,0,-off]) )
-
-            #print("bottom panel=", cors2)
+            cors2 = self._add_offset(cors, np.array([0,0,-off]) )
             outlines = self.make_panel( cors2 )
 
         elif side == "right":
-            for pp in self.corners:
-                #print("drawing", pp, pp[2])
-                if not(pp[0] == self.x0):
-                    #print("appending")
-                    farr.append(pp)
-
+            farr = self._check_for_point([self.x0, None, None])
             cors = self.filter_points( farr )
-
-            #add offset
-            cors2 = []
-            for i in range(len(cors)):
-                cors2.append( cors[i] + np.array([-off,0,0]) )
-
-            #print("right panel=", cors2)
+            cors2 = self._add_offset(cors, np.array([-off,0,0]) )
             outlines = self.make_panel( cors2 )
 
         elif side == "left":
-            for pp in self.corners:
-                #print("drawing", pp, pp[2])
-                if not(pp[1] == self.y0):
-                    #print("appending")
-                    farr.append(pp)
-
+            farr = self._check_for_point([None, self.y0, None])
             cors = self.filter_points( farr )
-
-            #add offset
-            cors2 = []
-            for i in range(len(cors)):
-                cors2.append( cors[i] + np.array([0,-off,0]) )
-
-            #print("left panel=", cors2)
+            cors2 = self._add_offset(cors, np.array([0,-off,0]) )
             outlines = self.make_panel( cors2 )
 
 
