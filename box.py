@@ -34,6 +34,12 @@ class Box:
     def __init__(self, ax_in):
         self.ax = ax_in
 
+    def set_data(self, data):
+        self.data = data
+
+        self.vmin = np.min( data )
+        self.vmax = np.max( data )
+
 
     # initialize box corners
     def make_corners(self):
@@ -123,6 +129,7 @@ class Box:
             cors2.append( cors[i] + offs )
         return cors2
 
+
     # draw also backside and bottom panels using exploded view
     def draw_hidden_panels(self, 
             side, 
@@ -130,7 +137,6 @@ class Box:
             fmt={'color':'k','linestyle':'dashed',},
             ):
 
-        farr = []
         if side == "bottom":
             farr = self._check_for_point([None, None, self.z0])
             cors = self.filter_points( farr )
@@ -157,39 +163,65 @@ class Box:
             lines.set(**fmt)
 
 
+    def draw_top(self):
+        farr = self._check_for_point([None, None, self.z0 + self.dz])
+        cors = self.filter_points( farr )
+        data_slice = self.data[:,:,-1] 
+
+        ny, nx = np.shape(data_slice)
+        X, Y = np.meshgrid( 
+                np.linspace(self.x0, self.x0 + self.dx, nx), 
+                np.linspace(self.y0, self.y0 + self.dy, ny))
+        z1 = self.z0 + self.dz
+        Z = z1*np.ones(X.shape)
+
+        self.draw_surface(X,Y,Z,data_slice)
+
+    def draw_left(self):
+        farr = self._check_for_point([None, self.y0 + self.dy, None])
+        cors = self.filter_points( farr )
+        data_slice = self.data[:,-1,:]
+
+        ny, nx = np.shape(data_slice)
+        X, Z = np.meshgrid( 
+                np.linspace(self.x0, self.x0 + self.dx, nx), 
+                np.linspace(self.z0, self.z0 + self.dz, ny))
+        y1 = self.y0 + self.dy
+        Y = y1*np.ones(X.shape)
+
+        self.draw_surface(X,Y,Z,data_slice)
+
+    def draw_right(self):
+        farr = self._check_for_point([self.x0 + self.dx, None, None])
+        cors = self.filter_points( farr )
+        data_slice = self.data[-1,:,:] 
+
+        ny, nx = np.shape(data_slice)
+        Y, Z = np.meshgrid( 
+                np.linspace(self.y0, self.y0 + self.dy, nx), 
+                np.linspace(self.z0, self.z0 + self.dz, ny))
+        x1 = self.x0 + self.dx
+        X = x1*np.ones(Z.shape)
+
+        self.draw_surface(X,Y,Z,data_slice)
 
 
-def draw_box_surface(
-        ax, 
-        kname, 
-        zoff, 
-        cmap=plt.cm.RdBu, 
-        vmin=0.0, 
-        vmax=1.0,
-        ):
 
-    data  = combine_tiles(files_F[0], kname, conf)[:,:,0]
-    
-    
-    ny, nx = np.shape(data)
-    print("nx={} ny={}".format(nx, ny))
-    
-    X, Y = np.meshgrid( np.linspace(0.0, 1.0, nx), np.linspace(0.0, 1.0, ny))
-    Z = zoff*np.ones(X.shape)
-    
-    #np.clip(data, vmin, vmax, out=data)
-    #data = data/data.max()
+    def draw_surface(self, X, Y, Z, data):
+        cmap = plt.cm.viridis
 
-    norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-    ax.plot_surface(
-            X,Y,Z,
-            rstride=5,
-            cstride=5,
-            facecolors=cmap( norm( data ) ),
-            shade=False,
-            alpha=1.0,
-            antialiased=True,
-            )
+        norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
+        self.ax.plot_surface(
+                X,Y,Z,
+                rstride=1,
+                cstride=1,
+                facecolors=cmap( norm( data.T ) ),
+                shade=False,
+                alpha=1.0,
+                antialiased=True,
+                )
+
+
 
 def axisEqual3D(ax):
     extents = np.array([getattr(ax, 'get_{}lim'.format(dim))() for dim in 'xyz'])
@@ -199,6 +231,32 @@ def axisEqual3D(ax):
     r = maxsize/2
     for ctr, dim in zip(centers, 'xyz'):
         getattr(ax, 'set_{}lim'.format(dim))(ctr - r, ctr + r)
+
+
+
+#for data
+def f(x, y, z):
+    #u = np.cos(x)*np.sin(y)
+    #v = np.sin(x)*np.cos(y)
+    #w = np.cos(x)*np.cos(y)
+    kx = 10.0
+    ky = 15.0
+    kz = 20.0
+    return np.cos(kx*x + 0.1) + np.cos(ky*y + 0.2) + np.cos(kz*z + 0.3)
+
+#def f(x, y, z):
+#    return np.exp(-0.5*(x - 1.0)**2.0) * np.exp(-0.10*(y - 1.0)**2.0) * np.exp(-0.01*(z - 1.0)**2.0)
+
+
+#def f(x, y, z):
+#    sig1 = 1.0
+#    sig2 = 2.0
+#    sig3 = 3.0
+#    norm1 = 1.0/np.sqrt(2.0*np.pi*sig1)
+#    norm2 = 1.0/np.sqrt(2.0*np.pi*sig2)
+#    norm3 = 1.0/np.sqrt(2.0*np.pi*sig3)
+#    return norm1*norm2*norm3*np.exp(-0.5*((x - 1.0)/sig1)**2.0) * np.exp(-0.5*((y - 1.0)/sig2)**2.0) * np.exp(-0.5*((z - 1.0)/sig3)**2.0) 
+
 
 
 ##################################################
@@ -216,9 +274,23 @@ if __name__ == "__main__":
     axs = []
     axs.append( fig.add_subplot(111, projection='3d') )
     
+    #create data
+    Nx = 50
+    x = np.linspace(0.0, 1.0, Nx)
+    y = np.linspace(0.0, 1.0, Nx)
+    z = np.linspace(0.0, 1.0, Nx)
+    X, Y, Z = np.meshgrid(x, y, z)
+    data = f(X,Y,Z)
     
     box = Box(axs[0])
+    box.set_data(data)
+
     box.draw_outline()
+    box.draw_top()
+    box.draw_left()
+    box.draw_right()
+
+
     box.draw_hidden_panels("bottom")
     box.draw_hidden_panels("left")
     box.draw_hidden_panels("right")
@@ -227,11 +299,14 @@ if __name__ == "__main__":
     axs[0].set_axis_off()
     axs[0].view_init(30.0, 45.0)
     
+
+
+
     
 
     axisEqual3D(axs[0])
     fname = 'box'
-    plt.subplots_adjust(left=0.0, bottom=0.0, right=1.1, top=1.0)
+    plt.subplots_adjust(left=0.0, bottom=0.0, right=1.0, top=1.0)
     plt.savefig(fname+'.pdf')
     plt.savefig(fname+'.png')
     
