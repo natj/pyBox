@@ -39,6 +39,8 @@ class Box:
 
         self.vmin = np.min( data )
         self.vmax = np.max( data )
+        print("vmin = {}".format(self.vmin))
+        print("vmax = {}".format(self.vmax))
 
 
     # initialize box corners
@@ -105,7 +107,10 @@ class Box:
         #    lines.set(**self.fmt)
         #print("-------------filttering...")
 
-        corners_f = self.filter_points( [ np.array([self.x0, self.y0, self.z0]) ] )
+        corners_f = self.filter_points( [ np.array([
+            self.x0+self.dx, 
+            self.y0+self.dy, 
+            self.z0]) ] )
         outlines2 = self.make_panel( corners_f )
 
         #print(outlines2)
@@ -146,16 +151,22 @@ class Box:
             cors2 = self._add_offset(cors, np.array([0,0,-off]) )
             outlines = self.make_panel( cors2 )
 
-        elif side == "right":
+        elif side == "left":
             farr = self._check_for_point([self.x0, None, None])
             cors = self.filter_points( farr )
             cors2 = self._add_offset(cors, np.array([-off,0,0]) )
             outlines = self.make_panel( cors2 )
 
-        elif side == "left":
-            farr = self._check_for_point([None, self.y0, None])
+        elif side == "right":
+            farr = self._check_for_point([self.x0+self.dx,None, None])
             cors = self.filter_points( farr )
-            cors2 = self._add_offset(cors, np.array([0,-off,0]) )
+            cors2 = self._add_offset(cors, np.array([+off,0,0]) )
+            outlines = self.make_panel( cors2 )
+
+        elif side == "back":
+            farr = self._check_for_point([None, self.y0+self.dy,None])
+            cors = self.filter_points( farr )
+            cors2 = self._add_offset(cors, np.array([0,+off,0]) )
             outlines = self.make_panel( cors2 )
 
 
@@ -171,30 +182,39 @@ class Box:
         cors = self.filter_points( farr )
         data_slice = self.data[:,:,-1]
     
-        ny, nx = np.shape(data_slice)
+        nx, ny = np.shape(data_slice)
         X, Y = np.meshgrid( 
                 np.linspace(self.x0, self.x0 + self.dx, nx), 
                 np.linspace(self.y0, self.y0 + self.dy, ny))
         z1 = self.z0 + self.dz
         Z = z1*np.ones(X.shape)
 
-        print("data slice:",np.shape(data_slice))
-        print("X", np.shape(X), len(X))
-        print("Y", np.shape(Y), len(Y))
-        print("Z", np.shape(X), len(Z))
-
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
     def draw_left(self, cmap=plt.cm.viridis):
-        farr = self._check_for_point([None, self.y0 + self.dy, None])
+        farr = self._check_for_point([self.x0, None, None])
         cors = self.filter_points( farr )
-        data_slice = self.data[:,-1,:]
+        data_slice = self.data[0,:,:]
 
-        ny, nx = np.shape(data_slice)
+        ny, nz = np.shape(data_slice)
+        Y, Z = np.meshgrid( 
+                np.linspace(self.y0, self.y0 + self.dy, ny), 
+                np.linspace(self.z0, self.z0 + self.dz, nz))
+        x1 = self.y0 
+        X = x1*np.ones(Y.shape)
+
+        self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
+
+    def draw_front(self, cmap=plt.cm.viridis):
+        farr = self._check_for_point([self.x0, None, None])
+        cors = self.filter_points( farr )
+        data_slice = self.data[:,0,:]
+
+        nx, nz = np.shape(data_slice)
         X, Z = np.meshgrid( 
                 np.linspace(self.x0, self.x0 + self.dx, nx), 
-                np.linspace(self.z0, self.z0 + self.dz, ny))
-        y1 = self.y0 + self.dy
+                np.linspace(self.z0, self.z0 + self.dz, nz))
+        y1 = self.y0 
         Y = y1*np.ones(X.shape)
 
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
@@ -219,7 +239,7 @@ class Box:
         cors = self.filter_points( farr )
         data_slice = self.data[:,:,0] 
 
-        ny, nx = np.shape(data_slice)
+        nx, ny = np.shape(data_slice)
         X, Y = np.meshgrid( 
                 np.linspace(self.x0, self.x0 + self.dx, nx), 
                 np.linspace(self.y0, self.y0 + self.dy, ny))
@@ -229,32 +249,48 @@ class Box:
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
 
-    def draw_exploded_left(self, off=dx, cmap=plt.cm.inferno):
-        farr = self._check_for_point([None, self.y0, None])
+    def draw_exploded_back(self, off=dx, cmap=plt.cm.inferno):
+        farr = self._check_for_point([self.x0+self.dx, self.y0+self.y0, None])
         cors = self.filter_points( farr )
-        data_slice = self.data[:,0,:]
+        data_slice = self.data[:,-1,:] 
 
-        ny, nx = np.shape(data_slice)
+        nx, nz = np.shape(data_slice)
         X, Z = np.meshgrid( 
                 np.linspace(self.x0, self.x0 + self.dx, nx), 
-                np.linspace(self.z0, self.z0 + self.dz, ny))
-        y1 = self.y0 - off
+                np.linspace(self.z0, self.z0 + self.dz, nz))
+        y1 = self.y0 + self.dy + off
         Y = y1*np.ones(X.shape)
+
+        self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
+
+    def draw_exploded_left(self, off=dx, cmap=plt.cm.inferno):
+        farr = self._check_for_point([self.x0, None, None])
+        cors = self.filter_points( farr )
+        data_slice = self.data[0,:,:]
+
+        ny, nz = np.shape(data_slice)
+        Y, Z = np.meshgrid( 
+                np.linspace(self.y0, self.y0 + self.dy, ny), 
+                np.linspace(self.z0, self.z0 + self.dz, nz))
+
+        x1 = self.x0 - off
+        X = x1*np.ones(Y.shape)
 
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
 
     def draw_exploded_right(self, off=dx, cmap=plt.cm.inferno):
-        farr = self._check_for_point([self.x0, None, None])
+        farr = self._check_for_point([self.x0+self.dx, None, None])
         cors = self.filter_points( farr )
-        data_slice = self.data[0,:,:] 
+        data_slice = self.data[-1,:,:] 
 
-        ny, nx = np.shape(data_slice)
+        ny, nz = np.shape(data_slice)
         Y, Z = np.meshgrid( 
-                np.linspace(self.y0, self.y0 + self.dy, nx), 
-                np.linspace(self.z0, self.z0 + self.dz, ny))
-        x1 = self.x0 - off
-        X = x1*np.ones(Z.shape)
+                np.linspace(self.y0, self.y0 + self.dy, ny), 
+                np.linspace(self.z0, self.z0 + self.dz, nz))
+
+        x1 = self.x0 + self.dx + off
+        X = x1*np.ones(Y.shape)
 
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
@@ -285,12 +321,13 @@ class Box:
             alpha=1.0
             ):
 
+        #print("draw_surface {} {}".format(self.vmin, self.vmax))
         norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
         self.ax.plot_surface(
                 X,Y,Z,
                 rstride=1,
                 cstride=1,
-                facecolors=cmap( norm( data ) ),
+                facecolors=cmap( norm( data.T ) ),
                 shade=False,
                 alpha=alpha,
                 antialiased=True,
