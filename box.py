@@ -83,7 +83,9 @@ class Box:
         #draw cube
         #print("combinatorics for:", corners)
         for s, e in combinations( corners, 2):
-            if np.sum(np.abs(s-e)) == self.dx:
+            if np.sum(np.abs(s-e)) == self.dx or \
+               np.sum(np.abs(s-e)) == self.dy or \
+               np.sum(np.abs(s-e)) == self.dz:
                 #print("XX    ", s,e )
                 panel.append( (s,e) )
 
@@ -92,7 +94,7 @@ class Box:
 
     # initialize box outlines
     def draw_outline(self,
-            fmt={'color':'k','linestyle':'dashed', 'lw':0.8, 'zorder':10}
+            fmt={'color':'k','linestyle':'dashed', 'lw':0.4, 'zorder':10}
             ):
         self.make_corners()
 
@@ -167,14 +169,19 @@ class Box:
     def draw_top(self, cmap=plt.cm.viridis):
         farr = self._check_for_point([None, None, self.z0 + self.dz])
         cors = self.filter_points( farr )
-        data_slice = self.data[:,:,-1] 
-
+        data_slice = self.data[:,:,-1]
+    
         ny, nx = np.shape(data_slice)
         X, Y = np.meshgrid( 
                 np.linspace(self.x0, self.x0 + self.dx, nx), 
                 np.linspace(self.y0, self.y0 + self.dy, ny))
         z1 = self.z0 + self.dz
         Z = z1*np.ones(X.shape)
+
+        print("data slice:",np.shape(data_slice))
+        print("X", np.shape(X), len(X))
+        print("Y", np.shape(Y), len(Y))
+        print("Z", np.shape(X), len(Z))
 
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
@@ -283,7 +290,7 @@ class Box:
                 X,Y,Z,
                 rstride=1,
                 cstride=1,
-                facecolors=cmap( norm( data.T ) ),
+                facecolors=cmap( norm( data ) ),
                 shade=False,
                 alpha=alpha,
                 antialiased=True,
