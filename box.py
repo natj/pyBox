@@ -177,6 +177,54 @@ class Box:
             lines.set(**fmt)
 
 
+    def draw_exploded_slice(
+            self, 
+            side, 
+            loc,
+            off, 
+            cmap='viridis',
+            fmt={'color':'k','linestyle':'dotted', 'linewidth':0.5, 'zorder':20},
+            fmtC={'color':'k','linestyle':'dotted', 'linewidth':0.3,'zorder':20},
+            ):
+
+        if side == "left-front":
+            farr = self._check_for_point([self.x0, None, None])
+            cors = self.filter_points( farr )
+            cors2 = self._add_offset(cors, np.array([loc,-off,0]) )
+            outlines = self.make_panel( cors2 )
+
+            #find point in same dim as offset is inserted that is closest to the box
+            pp1 = (self.x0 + loc, self.y0, self.z0        )
+            pp2 = (self.x0 + loc, self.y0, self.z0+self.dz)
+            lines, = self.ax.plot( [pp1[0], pp1[0]], [pp1[1], pp1[1]-off], [pp1[2], pp1[2]], **fmtC)
+            lines, = self.ax.plot( [pp2[0], pp2[0]], [pp2[1], pp2[1]-off], [pp2[2], pp2[2]], **fmtC)
+
+            nx,ny,nz = np.shape(self.data)
+            iloc = np.int( (loc/self.dx)*nx )
+            #print(loc, iloc)
+            data_slice = self.data[iloc,:,:]
+
+            ny, nz = np.shape(data_slice)
+            Y, Z = np.meshgrid( 
+                    np.linspace(self.y0-off, self.y0 + self.dy-off, ny), 
+                    np.linspace(self.z0, self.z0 + self.dz, nz))
+
+            x1 = self.x0 + loc
+            X = x1*np.ones(Y.shape)
+
+
+        self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
+
+        #print(outlines)
+        for (p0, p1) in outlines:
+            #print("connecting ({},{},{}) to ({},{},{})".format(p0[0],p0[1],p0[2], p1[0],p1[1],p1[2]))
+            lines, = self.ax.plot( [p0[0], p1[0]], [p0[1], p1[1]], [p0[2], p1[2]] )
+            lines.set(**fmt)
+
+
+
+
+
     def draw_top(self, cmap=plt.cm.viridis):
         farr = self._check_for_point([None, None, self.z0 + self.dz])
         cors = self.filter_points( farr )
