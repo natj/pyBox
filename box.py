@@ -96,7 +96,7 @@ class Box:
 
     # initialize box outlines
     def draw_outline(self,
-            fmt={'color':'k','linestyle':'dashed', 'lw':0.4, 'zorder':10}
+            fmt={'color':'k','linestyle':'dashed', 'lw':0.4, 'zorder':20}
             ):
         self.make_corners()
 
