@@ -225,11 +225,16 @@ class Box:
 
 
 
-    def draw_top(self, cmap=plt.cm.viridis):
+    def draw_top(self, cmap=plt.cm.viridis, data_slice=None):
         farr = self._check_for_point([None, None, self.z0 + self.dz])
         cors = self.filter_points( farr )
-        data_slice = self.data[:,:,-1]
-    
+
+        try:
+            if data_slice == None:
+                data_slice = self.data[:,:,-1]
+        except:
+            pass
+
         nx, ny = np.shape(data_slice)
         X, Y = np.meshgrid( 
                 np.linspace(self.x0, self.x0 + self.dx, nx), 
@@ -239,10 +244,15 @@ class Box:
 
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
-    def draw_left(self, cmap=plt.cm.viridis):
+    def draw_left(self, cmap=plt.cm.viridis, data_slice=None):
         farr = self._check_for_point([self.x0, None, None])
         cors = self.filter_points( farr )
-        data_slice = self.data[0,:,:]
+
+        try:
+            if data_slice == None:
+                data_slice = self.data[0,:,:]
+        except:
+            pass
 
         ny, nz = np.shape(data_slice)
         Y, Z = np.meshgrid( 
@@ -253,10 +263,15 @@ class Box:
 
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
-    def draw_front(self, cmap=plt.cm.viridis):
+    def draw_front(self, cmap=plt.cm.viridis, data_slice=None):
         farr = self._check_for_point([self.x0, None, None])
         cors = self.filter_points( farr )
-        data_slice = self.data[:,0,:]
+
+        try:
+            if data_slice == None:
+                data_slice = self.data[:,0,:]
+        except:
+            pass
 
         nx, nz = np.shape(data_slice)
         X, Z = np.meshgrid( 
@@ -267,10 +282,15 @@ class Box:
 
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
-    def draw_right(self, cmap=plt.cm.viridis):
+    def draw_right(self, cmap=plt.cm.viridis, data_slice=None):
         farr = self._check_for_point([self.x0 + self.dx, None, None])
         cors = self.filter_points( farr )
-        data_slice = self.data[-1,:,:] 
+
+        try:
+            if data_slice == None:
+                data_slice = self.data[-1,:,:] 
+        except:
+            pass
 
         ny, nx = np.shape(data_slice)
         Y, Z = np.meshgrid( 
@@ -282,10 +302,15 @@ class Box:
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
 
-    def draw_exploded_bottom(self, off=dx, cmap=plt.cm.inferno):
+    def draw_exploded_bottom(self, off=dx, cmap=plt.cm.inferno, data_slice=None):
         farr = self._check_for_point([None, None, self.z0])
         cors = self.filter_points( farr )
-        data_slice = self.data[:,:,0] 
+
+        try:
+            if data_slice == None:
+                data_slice = self.data[:,:,0] 
+        except:
+            pass
 
         nx, ny = np.shape(data_slice)
         X, Y = np.meshgrid( 
@@ -297,10 +322,15 @@ class Box:
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
 
-    def draw_exploded_back(self, off=dx, cmap=plt.cm.inferno):
+    def draw_exploded_back(self, off=dx, cmap=plt.cm.inferno, data_slice=None):
         farr = self._check_for_point([self.x0+self.dx, self.y0+self.y0, None])
         cors = self.filter_points( farr )
-        data_slice = self.data[:,-1,:] 
+
+        try:
+            if data_slice == None:
+                data_slice = self.data[:,-1,:] 
+        except:
+            pass
 
         nx, nz = np.shape(data_slice)
         X, Z = np.meshgrid( 
@@ -311,10 +341,15 @@ class Box:
 
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
-    def draw_exploded_left(self, off=dx, cmap=plt.cm.inferno):
+    def draw_exploded_left(self, off=dx, cmap=plt.cm.inferno, data_slice=None):
         farr = self._check_for_point([self.x0, None, None])
         cors = self.filter_points( farr )
-        data_slice = self.data[0,:,:]
+
+        try:
+            if data_slice == None:
+                data_slice = self.data[0,:,:]
+        except:
+            pass
 
         ny, nz = np.shape(data_slice)
         Y, Z = np.meshgrid( 
@@ -327,10 +362,15 @@ class Box:
         self.draw_surface(X,Y,Z,data_slice, cmap=cmap)
 
 
-    def draw_exploded_right(self, off=dx, cmap=plt.cm.inferno):
+    def draw_exploded_right(self, off=dx, cmap=plt.cm.inferno, data_slice=None):
         farr = self._check_for_point([self.x0+self.dx, None, None])
         cors = self.filter_points( farr )
-        data_slice = self.data[-1,:,:] 
+
+        try:
+            if data_slice == None:
+                data_slice = self.data[-1,:,:] 
+        except:
+            pass
 
         ny, nz = np.shape(data_slice)
         Y, Z = np.meshgrid( 
