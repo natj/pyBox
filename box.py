@@ -430,27 +430,41 @@ class Box:
             L,
             tick_locations,
             tick_labels,
+            label='',
             along='x',
             position = 'top',
             direction = 'out',
             offs = 0.03,
             offs_tick = 0.06,
+            offs_label = 0.16,
+            rotation=0.0
             ):
 
         n_ticks = len(tick_locations)
 
 
-        if along == 'x' and position == 'top':
-            p0 = (self.x0         ,  self.y0 + self.dy, self.z0 + self.dz )
-            p1 = (self.x0 + self.dx, self.y0 + self.dy, self.z0 + self.dz )
+        #if along == 'x' and position == 'top':
+        #    p0 = (self.x0         ,  self.y0 + self.dy, self.z0 + self.dz )
+        #    p1 = (self.x0 + self.dx, self.y0 + self.dy, self.z0 + self.dz )
 
-        if along == 'x' and position == 'bottom':
+        if along == 'x' and position == 'top':
             p0 = (self.x0         ,  self.y0, self.z0 + self.dz )
             p1 = (self.x0 + self.dx, self.y0, self.z0 + self.dz )
 
+        if along == 'x' and position == 'bottom':
+            p0 = (self.x0         ,  self.y0, self.z0)
+            p1 = (self.x0 + self.dx, self.y0, self.z0)
+
+        if along == 'y' and position == 'top':
+            p0 = (self.x0, self.y0          , self.z0 + self.dz )
+            p1 = (self.x0, self.y0 + self.dy, self.z0 + self.dz )
 
         if along == 'y' and position == 'bottom':
-            p0 = (self.x0, self.y0          , self.z0 + self.dz )
+            p0 = (self.x0, self.y0          , self.z0)
+            p1 = (self.x0, self.y0 + self.dy, self.z0)
+
+        if along == 'z' and position == 'top':
+            p0 = (self.x0, self.y0 + self.dy, self.z0           )
             p1 = (self.x0, self.y0 + self.dy, self.z0 + self.dz )
 
         if along == 'z' and position == 'bottom':
@@ -469,6 +483,11 @@ class Box:
             offs *= -1
             offs_tick *= -1
 
+        # z directions are flipped to point in
+        if along == 'z' and position == 'top':
+            offs *= -1
+            #offs_tick *= -1
+
         xsa = np.linspace(x0,x1,n_ticks)
         ysa = np.linspace(y0,y1,n_ticks)
         zsa = np.linspace(z0,z1,n_ticks)
@@ -483,7 +502,11 @@ class Box:
             xsa = tick_locations/L
             xst = tick_locations/L
 
-            ysa -= offs
+            if position == 'top':
+                ysa -= offs
+            if position == 'bottom':
+                zsa -= offs
+
             yst += offs_tick
 
         # along y so we push the ticks towards x
@@ -492,7 +515,11 @@ class Box:
             ysa = tick_locations/L
             yst = tick_locations/L
 
-            xsa -= offs
+            if position =='top':
+                xsa -= offs
+            if position =='bottom':
+                zsa -= offs
+
             xst += offs_tick
 
         # along z so we push the ticks towards x
@@ -501,7 +528,11 @@ class Box:
             zsa = tick_locations/L
             zst = tick_locations/L
 
-            xsa -= offs
+            if position =='top':
+                ysa -= offs
+            if position =='bottom':
+                xsa -= offs
+
             xst += offs_tick
 
 
@@ -537,10 +568,38 @@ class Box:
                         stick,
                         va='center',
                         ha='center',
-                        fontsize=6,
+                        fontsize=5,
                         zorder=30,
                         )
                         
+
+        # label goes to half way of points
+        xhf = x0 + (x1 + x0)/2
+        yhf = y0 + (y1 + y0)/2
+        zhf = z0 + (z1 + z0)/2
+        print("label loc:", xhf, yhf, zhf)
+
+        if along =='x' and position == 'bottom':
+            yhf -= offs_label
+            zhf = 0.0
+        if along =='y' and position == 'bottom':
+            xhf -= offs_label
+            #yhf = 0.3
+            zhf = 0.0
+        if along =='z' and position == 'top':
+            zhf = 0.5
+            yhf = 1.0
+            xhf -= offs_label
+
+        self.ax.text(
+                xhf, yhf, zhf,
+                label,
+                va='center',
+                ha='center',
+                fontsize=6,
+                zorder=30,
+                rotation=rotation,
+                )
 
 
 def axisEqual3D(ax):
