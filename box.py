@@ -3,6 +3,8 @@ import numpy as np
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+
 from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -421,6 +423,124 @@ class Box:
                 antialiased=True,
                 )
 
+
+    def set_ticklabels(
+            self,
+            #n_ticks,
+            L,
+            tick_locations,
+            tick_labels,
+            along='x',
+            position = 'top',
+            direction = 'out',
+            offs = 0.03,
+            offs_tick = 0.06,
+            ):
+
+        n_ticks = len(tick_locations)
+
+
+        if along == 'x' and position == 'top':
+            p0 = (self.x0         ,  self.y0 + self.dy, self.z0 + self.dz )
+            p1 = (self.x0 + self.dx, self.y0 + self.dy, self.z0 + self.dz )
+
+        if along == 'x' and position == 'bottom':
+            p0 = (self.x0         ,  self.y0, self.z0 + self.dz )
+            p1 = (self.x0 + self.dx, self.y0, self.z0 + self.dz )
+
+
+        if along == 'y' and position == 'bottom':
+            p0 = (self.x0, self.y0          , self.z0 + self.dz )
+            p1 = (self.x0, self.y0 + self.dy, self.z0 + self.dz )
+
+        if along == 'z' and position == 'bottom':
+            p0 = (self.x0, self.y0, self.z0           )
+            p1 = (self.x0, self.y0, self.z0 + self.dz )
+
+        # start and ending points
+        x0,y0,z0 = p0
+        x1,y1,z1 = p1
+
+        xs = np.linspace(x0,x1,n_ticks)
+        ys = np.linspace(y0,y1,n_ticks)
+        zs = np.linspace(z0,z1,n_ticks)
+
+        if direction == 'in':
+            offs *= -1
+            offs_tick *= -1
+
+        xsa = np.linspace(x0,x1,n_ticks)
+        ysa = np.linspace(y0,y1,n_ticks)
+        zsa = np.linspace(z0,z1,n_ticks)
+
+        xst = np.linspace(x0,x1,n_ticks)
+        yst = np.linspace(y0,y1,n_ticks)
+        zst = np.linspace(z0,z1,n_ticks)
+
+        # along x so we push the ticks towards y
+        if along == 'x':
+            xs  = tick_locations/L
+            xsa = tick_locations/L
+            xst = tick_locations/L
+
+            ysa -= offs
+            yst += offs_tick
+
+        # along y so we push the ticks towards x
+        if along == 'y':
+            ys  = tick_locations/L
+            ysa = tick_locations/L
+            yst = tick_locations/L
+
+            xsa -= offs
+            xst += offs_tick
+
+        # along z so we push the ticks towards x
+        if along == 'z':
+            zs  = tick_locations/L
+            zsa = tick_locations/L
+            zst = tick_locations/L
+
+            xsa -= offs
+            xst += offs_tick
+
+
+
+        for i in range(n_ticks):
+            self.ax.plot(
+                    [xs[i], xsa[i]],
+                    [ys[i], ysa[i]],
+                    [zs[i], zsa[i]],
+                    color='k',
+                    linestyle='solid',
+                    linewidth=0.5,
+                    zorder=30,
+                    )
+
+            if along == 'x':
+                val = xs[i]*L
+            if along == 'y':
+                val = ys[i]*L
+            if along == 'z':
+                val = zs[i]*L
+            val = round(val,1)
+            print("setting tick to:", val)
+    
+            if val in tick_labels:
+
+                #stick = "{:.1f}".format(ticklabels[i])
+                #stick = "{:.1f}".format(val)
+                stick = "{:3d}".format(int(val))
+
+                self.ax.text(
+                        xst[i], yst[i], zst[i],
+                        stick,
+                        va='center',
+                        ha='center',
+                        fontsize=6,
+                        zorder=30,
+                        )
+                        
 
 
 def axisEqual3D(ax):
