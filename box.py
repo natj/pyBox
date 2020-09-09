@@ -429,13 +429,14 @@ class Box:
             #n_ticks,
             L,
             tick_locations,
+            tick_boolean,
             tick_labels,
             label='',
             along='x',
             position = 'top',
             direction = 'out',
-            offs = 0.03,
-            offs_tick = 0.06,
+            offs = 0.10,
+            offs_tick = 0.25,
             offs_label = 0.16,
             rotation=0.0
             ):
@@ -555,20 +556,26 @@ class Box:
             if along == 'z':
                 val = zs[i]*L
             val = round(val,1)
-            print("setting tick to:", val)
+            #print("setting tick to:", val)
     
-            if val in tick_labels:
+            #print("testing tick label to:", xst[i], yst[i], zst[i])
+
+            #if val in tick_labels:
+            if len(tick_boolean) > 0 and tick_boolean[i]:
 
                 #stick = "{:.1f}".format(ticklabels[i])
                 #stick = "{:.1f}".format(val)
-                stick = "{:3d}".format(int(val))
+
+                #stick = "{:3d}".format(int(val))
+                stick = "{:3d}".format(tick_labels[i])
+                #print("        tick label to:", xst[i], yst[i], zst[i], ' str:', stick)
 
                 self.ax.text(
                         xst[i], yst[i], zst[i],
                         stick,
                         va='center',
                         ha='center',
-                        fontsize=5,
+                        fontsize=3,
                         zorder=30,
                         )
                         
@@ -577,7 +584,7 @@ class Box:
         xhf = x0 + (x1 + x0)/2
         yhf = y0 + (y1 + y0)/2
         zhf = z0 + (z1 + z0)/2
-        print("label loc:", xhf, yhf, zhf)
+        #print("label loc:", xhf, yhf, zhf)
 
         if along =='x' and position == 'bottom':
             yhf -= offs_label
@@ -596,7 +603,7 @@ class Box:
                 label,
                 va='center',
                 ha='center',
-                fontsize=6,
+                fontsize=4,
                 zorder=30,
                 rotation=rotation,
                 )
